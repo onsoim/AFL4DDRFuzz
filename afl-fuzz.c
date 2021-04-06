@@ -20,8 +20,6 @@
 
  */
 
-#define _CRT_SECURE_NO_WARNINGS
-
 #define AFL_MAIN
 #define MESSAGES_TO_STDOUT
 
