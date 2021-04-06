@@ -5010,6 +5010,9 @@ static u8 fuzz_one(char** argv) {
 
   len = queue_cur->len;
 
+  /* onsoim */
+  /* the point after mmap test case */
+  /* ? save `orig_in` ? */
   orig_in = in_buf = mmap(0, len, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
 
   if (orig_in == MAP_FAILED) PFATAL("Unable to mmap '%s'", queue_cur->fname);
@@ -5074,6 +5077,9 @@ static u8 fuzz_one(char** argv) {
 
   }
 
+  /* onsoim */
+  /* the point after calibration & trim */
+  /* ? save `out_buf` ? */
   memcpy(out_buf, in_buf, len);
 
   /*********************
