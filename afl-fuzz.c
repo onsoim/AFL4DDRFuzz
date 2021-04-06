@@ -20,6 +20,8 @@
 
  */
 
+#define _CRT_SECURE_NO_WARNINGS
+
 #define AFL_MAIN
 #define MESSAGES_TO_STDOUT
 
@@ -3287,6 +3289,15 @@ keep_as_crash:
   /* If we're here, we apparently want to save the crash or hang
      test case, too. */
 
+  fd = open(fn, O_WRONLY | O_CREAT | O_EXCL, 0600);
+  if (fd < 0) PFATAL("Unable to create '%s'", fn);
+  ck_write(fd, mem, len, fn);
+  close(fd);
+
+  /* If we're here, we apparently want to save the previous seed
+     that triggering crash. */
+
+  fn = alloc_printf("%s_prev", fn);
   fd = open(fn, O_WRONLY | O_CREAT | O_EXCL, 0600);
   if (fd < 0) PFATAL("Unable to create '%s'", fn);
   ck_write(fd, mem, len, fn);
