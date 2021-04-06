@@ -223,6 +223,11 @@ static s32 cpu_aff = -1;       	      /* Selected CPU core                */
 
 static FILE* plot_file;               /* Gnuplot output file              */
 
+/* onsoim */
+/* Variables to save previous case for DDRFuzz */
+EXP_ST u8 *prev_buf;                  /* Previous case to trace mutation  */
+static s32 prev_len;                  /* Length of prev_buf               */
+
 struct queue_entry {
 
   u8* fname;                          /* File name for the test case      */
@@ -3292,13 +3297,14 @@ keep_as_crash:
   ck_write(fd, mem, len, fn);
   close(fd);
 
-  /* If we're here, we apparently want to save the previous seed
-     that triggering crash. */
+  /* onsoim */
+  /* If we're here, we apparently want to save the previous case
+     that triggering a new unique crash. */
 
   fn = alloc_printf("%s_prev", fn);
   fd = open(fn, O_WRONLY | O_CREAT | O_EXCL, 0600);
   if (fd < 0) PFATAL("Unable to create '%s'", fn);
-  ck_write(fd, mem, len, fn);
+  ck_write(fd, prev_buf, prev_len, fn);
   close(fd);
 
   ck_free(fn);
@@ -5008,12 +5014,13 @@ static u8 fuzz_one(char** argv) {
 
   if (fd < 0) PFATAL("Unable to open '%s'", queue_cur->fname);
 
-  len = queue_cur->len;
+  /* onsoim */
+  /* Point to save the length of previous case */
+  prev_len = len = queue_cur->len;
 
   /* onsoim */
-  /* the point after mmap test case */
-  /* ? save `orig_in` ? */
-  orig_in = in_buf = mmap(0, len, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
+  /* Point to save previous case */
+  prev_buf = orig_in = in_buf = mmap(0, len, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
 
   if (orig_in == MAP_FAILED) PFATAL("Unable to mmap '%s'", queue_cur->fname);
 
