@@ -223,6 +223,9 @@ static s32 cpu_aff = -1;       	      /* Selected CPU core                */
 
 static FILE* plot_file;               /* Gnuplot output file              */
 
+static u8 *prev_mem;
+static s32 prev_mem_len;
+
 struct queue_entry {
 
   u8* fname;                          /* File name for the test case      */
@@ -3164,6 +3167,12 @@ static u8 save_if_interesting(char** argv, void* mem, u32 len, u8 fault) {
     ck_write(fd, mem, len, fn);
     close(fd);
 
+    fn = alloc_printf("%s_prev", fn);
+    fd = open(fn, O_WRONLY | O_CREAT | O_EXCL, 0600);
+    if (fd < 0) PFATAL("Unable to create '%s'", fn);
+    ck_write(fd, prev_mem, prev_mem_len, fn);
+    close(fd);
+
     keeping = 1;
 
   }
@@ -3298,7 +3307,7 @@ keep_as_crash:
   fn = alloc_printf("%s_prev", fn);
   fd = open(fn, O_WRONLY | O_CREAT | O_EXCL, 0600);
   if (fd < 0) PFATAL("Unable to create '%s'", fn);
-  ck_write(fd, mem, len, fn);
+  ck_write(fd, prev_mem, prev_mem_len, fn);
   close(fd);
 
   ck_free(fn);
@@ -5009,11 +5018,13 @@ static u8 fuzz_one(char** argv) {
   if (fd < 0) PFATAL("Unable to open '%s'", queue_cur->fname);
 
   len = queue_cur->len;
+  prev_mem_len = len;
 
   /* onsoim */
   /* the point after mmap test case */
   /* ? save `orig_in` ? */
   orig_in = in_buf = mmap(0, len, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
+  prev_mem = orig_in;
 
   if (orig_in == MAP_FAILED) PFATAL("Unable to mmap '%s'", queue_cur->fname);
 
