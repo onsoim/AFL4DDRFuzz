@@ -225,7 +225,7 @@ static FILE* plot_file;               /* Gnuplot output file              */
 
 /* onsoim */
 /* Variables to save previous case for DDRFuzz */
-EXP_ST u8 *prev_buf;                  /* Previous case to trace mutation  */
+static u8 *prev_buf;                  /* Previous case to trace mutation  */
 static s32 prev_len;                  /* Length of prev_buf               */
 
 struct queue_entry {
@@ -3169,6 +3169,23 @@ static u8 save_if_interesting(char** argv, void* mem, u32 len, u8 fault) {
     ck_write(fd, mem, len, fn);
     close(fd);
 
+    /* onsoim */
+    /* If we're here, we apparently want to save the previous case
+          that triggering a unique path. */
+    fn = alloc_printf("%s/paths/id:%06u_prev", out_dir, queued_paths);
+    fd = open(fn, O_WRONLY | O_CREAT | O_EXCL, 0600);
+    if (fd < 0) PFATAL("Unable to create '%s'", fn);
+    ck_write(fd, prev_buf, prev_len, fn);
+    close(fd);
+
+    /* onsoim */
+    /* If we're here, we apparently want to save the path case. */
+    fn = alloc_printf("%s/paths/id:%06u", out_dir, queued_paths);
+    fd = open(fn, O_WRONLY | O_CREAT | O_EXCL, 0600);
+    if (fd < 0) PFATAL("Unable to create '%s'", fn);
+    ck_write(fd, mem, len, fn);
+    close(fd);
+
     keeping = 1;
 
   }
@@ -3774,6 +3791,39 @@ static void maybe_delete_out_dir(void) {
   fn = alloc_printf("%s/crashes", out_dir);
 
   /* Make backup of the crashes directory if it's not empty and if we're
+     doing in-place resume. */
+
+  if (in_place_resume && rmdir(fn)) {
+
+    time_t cur_t = time(0);
+    struct tm* t = localtime(&cur_t);
+
+#ifndef SIMPLE_FILES
+
+    u8* nfn = alloc_printf("%s.%04u-%02u-%02u-%02u:%02u:%02u", fn,
+                           t->tm_year + 1900, t->tm_mon + 1, t->tm_mday,
+                           t->tm_hour, t->tm_min, t->tm_sec);
+
+#else
+
+    u8* nfn = alloc_printf("%s_%04u%02u%02u%02u%02u%02u", fn,
+                           t->tm_year + 1900, t->tm_mon + 1, t->tm_mday,
+                           t->tm_hour, t->tm_min, t->tm_sec);
+
+#endif /* ^!SIMPLE_FILES */
+
+    rename(fn, nfn); /* Ignore errors. */
+    ck_free(nfn);
+
+  }
+
+  if (delete_files(fn, CASE_PREFIX)) goto dir_cleanup_failed;
+  ck_free(fn);
+
+  fn = alloc_printf("%s/paths", out_dir);
+
+  /* onsoim */
+  /* Make backup of the paths directory if it's not empty and if we're
      doing in-place resume. */
 
   if (in_place_resume && rmdir(fn)) {
@@ -7187,6 +7237,13 @@ EXP_ST void setup_dirs_fds(void) {
   /* All recorded crashes. */
 
   tmp = alloc_printf("%s/crashes", out_dir);
+  if (mkdir(tmp, 0700)) PFATAL("Unable to create '%s'", tmp);
+  ck_free(tmp);
+
+  /* onsoim */
+  /* All recorded paths. */
+
+  tmp = alloc_printf("%s/paths", out_dir);
   if (mkdir(tmp, 0700)) PFATAL("Unable to create '%s'", tmp);
   ck_free(tmp);
 
