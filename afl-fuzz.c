@@ -3263,6 +3263,39 @@ keep_as_crash:
          except for slightly different limits and no need to re-run test
          cases. */
 
+/* need to remove below codes that saving unique crash. */
+// #ifndef SIMPLE_FILES
+
+//       fn = alloc_printf("%s/crashes/id:%06llu,sig:%02u,%s_DUP", out_dir,
+//                       total_crashes, kill_signal, describe_op(0));
+
+// #else
+
+//       fn = alloc_printf("%s/crashes/id_%06llu_%02u_DUP", out_dir, total_crashes,
+//                       kill_signal);
+
+// #endif /* ^!SIMPLE_FILES */
+
+//       /* onsoim */
+//       /* If we're here, we apparently want to save the crash case. */
+
+//       fd = open(fn, O_WRONLY | O_CREAT | O_EXCL, 0600);
+//       if (fd < 0) PFATAL("Unable to create '%s'", fn);
+//       ck_write(fd, mem, len, fn);
+//       close(fd);
+
+//       /* onsoim */
+//       /* If we're here, we apparently want to save the previous case
+//         that triggering a crash. */
+
+//       fn = alloc_printf("%s_prev", fn);
+//       fd = open(fn, O_WRONLY | O_CREAT | O_EXCL, 0600);
+//       if (fd < 0) PFATAL("Unable to create '%s'", fn);
+//       ck_write(fd, prev_buf, prev_len, fn);
+//       close(fd);
+
+//       ck_free(fn);
+
       total_crashes++;
 
       if (unique_crashes >= KEEP_UNIQUE_CRASH) return keeping;
