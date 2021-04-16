@@ -3172,7 +3172,7 @@ static u8 save_if_interesting(char** argv, void* mem, u32 len, u8 fault) {
     /* onsoim */
     /* If we're here, we apparently want to save the previous case
           that triggering a unique path. */
-    fn = alloc_printf("%s/paths/id:%06u_prev", out_dir, queued_paths);
+    fn = alloc_printf("%s/DDRFuzz/paths/id:%06u_prev", out_dir, queued_paths);
     fd = open(fn, O_WRONLY | O_CREAT | O_EXCL, 0600);
     if (fd < 0) PFATAL("Unable to create '%s'", fn);
     ck_write(fd, prev_buf, prev_len, fn);
@@ -3180,7 +3180,7 @@ static u8 save_if_interesting(char** argv, void* mem, u32 len, u8 fault) {
 
     /* onsoim */
     /* If we're here, we apparently want to save the path case. */
-    fn = alloc_printf("%s/paths/id:%06u", out_dir, queued_paths);
+    fn = alloc_printf("%s/DDRFuzz/paths/id:%06u", out_dir, queued_paths);
     fd = open(fn, O_WRONLY | O_CREAT | O_EXCL, 0600);
     if (fd < 0) PFATAL("Unable to create '%s'", fn);
     ck_write(fd, mem, len, fn);
@@ -3264,37 +3264,37 @@ keep_as_crash:
          cases. */
 
 /* need to remove below codes that saving unique crash. */
-// #ifndef SIMPLE_FILES
+#ifndef SIMPLE_FILES
 
-//       fn = alloc_printf("%s/crashes/id:%06llu,sig:%02u,%s_DUP", out_dir,
-//                       total_crashes, kill_signal, describe_op(0));
+      fn = alloc_printf("%s/DDRFuzz/crashes/id:%06llu,sig:%02u,%s", out_dir,
+                      total_crashes, kill_signal, describe_op(0));
 
-// #else
+#else
 
-//       fn = alloc_printf("%s/crashes/id_%06llu_%02u_DUP", out_dir, total_crashes,
-//                       kill_signal);
+      fn = alloc_printf("%s/DDRFuzz/crashes/id_%06llu_%02u", out_dir, total_crashes,
+                      kill_signal);
 
-// #endif /* ^!SIMPLE_FILES */
+#endif /* ^!SIMPLE_FILES */
 
-//       /* onsoim */
-//       /* If we're here, we apparently want to save the crash case. */
+      /* onsoim */
+      /* If we're here, we apparently want to save the crash case. */
 
-//       fd = open(fn, O_WRONLY | O_CREAT | O_EXCL, 0600);
-//       if (fd < 0) PFATAL("Unable to create '%s'", fn);
-//       ck_write(fd, mem, len, fn);
-//       close(fd);
+      fd = open(fn, O_WRONLY | O_CREAT | O_EXCL, 0600);
+      if (fd < 0) PFATAL("Unable to create '%s'", fn);
+      ck_write(fd, mem, len, fn);
+      close(fd);
 
-//       /* onsoim */
-//       /* If we're here, we apparently want to save the previous case
-//         that triggering a crash. */
+      /* onsoim */
+      /* If we're here, we apparently want to save the previous case
+        that triggering a crash. */
 
-//       fn = alloc_printf("%s_prev", fn);
-//       fd = open(fn, O_WRONLY | O_CREAT | O_EXCL, 0600);
-//       if (fd < 0) PFATAL("Unable to create '%s'", fn);
-//       ck_write(fd, prev_buf, prev_len, fn);
-//       close(fd);
+      fn = alloc_printf("%s_prev", fn);
+      fd = open(fn, O_WRONLY | O_CREAT | O_EXCL, 0600);
+      if (fd < 0) PFATAL("Unable to create '%s'", fn);
+      ck_write(fd, prev_buf, prev_len, fn);
+      close(fd);
 
-//       ck_free(fn);
+      ck_free(fn);
 
       total_crashes++;
 
@@ -3351,11 +3351,11 @@ keep_as_crash:
   /* If we're here, we apparently want to save the previous case
      that triggering a new unique crash. */
 
-  fn = alloc_printf("%s_prev", fn);
-  fd = open(fn, O_WRONLY | O_CREAT | O_EXCL, 0600);
-  if (fd < 0) PFATAL("Unable to create '%s'", fn);
-  ck_write(fd, prev_buf, prev_len, fn);
-  close(fd);
+//   fn = alloc_printf("%s_prev", fn);
+//   fd = open(fn, O_WRONLY | O_CREAT | O_EXCL, 0600);
+//   if (fd < 0) PFATAL("Unable to create '%s'", fn);
+//   ck_write(fd, prev_buf, prev_len, fn);
+//   close(fd);
 
   ck_free(fn);
 
@@ -3853,7 +3853,7 @@ static void maybe_delete_out_dir(void) {
   if (delete_files(fn, CASE_PREFIX)) goto dir_cleanup_failed;
   ck_free(fn);
 
-  fn = alloc_printf("%s/paths", out_dir);
+  fn = alloc_printf("%s/DDRFuzz", out_dir);
 
   /* onsoim */
   /* Make backup of the paths directory if it's not empty and if we're
@@ -7274,9 +7274,23 @@ EXP_ST void setup_dirs_fds(void) {
   ck_free(tmp);
 
   /* onsoim */
+  /* All recorded total crashes. */
+
+  tmp = alloc_printf("%s/DDRFuzz", out_dir);
+  if (mkdir(tmp, 0700)) PFATAL("Unable to create '%s'", tmp);
+  ck_free(tmp);
+
+  /* onsoim */
+  /* All recorded total crashes. */
+
+  tmp = alloc_printf("%s/DDRFuzz/crashes", out_dir);
+  if (mkdir(tmp, 0700)) PFATAL("Unable to create '%s'", tmp);
+  ck_free(tmp);
+
+  /* onsoim */
   /* All recorded paths. */
 
-  tmp = alloc_printf("%s/paths", out_dir);
+  tmp = alloc_printf("%s/DDRFuzz/paths", out_dir);
   if (mkdir(tmp, 0700)) PFATAL("Unable to create '%s'", tmp);
   ck_free(tmp);
 
